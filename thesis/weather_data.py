@@ -7,20 +7,32 @@ import time
 
 
 # Split events dataframe into two halves
+import pandas as pd
+
+# Split events dataframe into three parts
 def split_eventsdf_into_three(df):
+    """
+    Splits the events dataframe into three roughly equal parts.
+
+    Args:
+        df (pd.DataFrame): The events dataframe.
+
+    Returns:
+        tuple: A tuple containing the three splits of the dataframe.
+    """
     # Calculate split points
-    first_split = len(df) // 3  
-    second_split = 2 * (len(df) // 3)  
+    first_split_index = len(df) // 3  
+    second_split_index = 2 * (len(df) // 3)  
     
-    # Split into three parts
-    first_split = df.iloc[:first_split]  
-    second_split = df.iloc[first_split:second_split]  
-    last_split = df.iloc[second_split:] 
+    # Split into three parts using the calculated indices
+    first_split = df.iloc[:first_split_index]  
+    second_split = df.iloc[first_split_index:second_split_index]  
+    last_split = df.iloc[second_split_index:] 
 
     return first_split, second_split, last_split
 
 
-def concat_both_halves(first_split, second_split, last_split):
+def concat_all_splits(first_split, second_split, last_split):
     # Concatenate the two halves back together
     df_event_combined = pd.concat([first_split, second_split, last_split], axis=0)
     # Reset the index of the combined dataframe
