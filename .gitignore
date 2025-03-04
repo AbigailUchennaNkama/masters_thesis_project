@@ -1,3 +1,4 @@
 
 thesis/data/event_rec_engine_challenge/*.csv
 *.csv
+*.csv:Zone.Identifier
