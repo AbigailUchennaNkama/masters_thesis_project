@@ -1,0 +1,2 @@
+model_checkpoint_path: "two_tower_weights"
+all_model_checkpoint_paths: "two_tower_weights"
