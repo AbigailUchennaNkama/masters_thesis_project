@@ -1,11 +1,13 @@
 import numpy as np
+import pandas as pd
 import random
 from faker import Faker
 from scipy.stats import skewnorm, dirichlet
-from datetime import datetime, timedelta
+from mimesis import Generic
 
 # Initialize Faker and set seed for reproducibility
 fake = Faker()
+generic = Generic('en')
 np.random.seed(42)
 random.seed(42)
 
@@ -21,35 +23,35 @@ city_coords = {
 
 def generate_location(city):
     base_lat, base_lon = city_coords[city]
-    if random.random() < 0.8:
-        lat = base_lat + np.random.uniform(-0.1, 0.1)
-        lon = base_lon + np.random.uniform(-0.1, 0.1)
-    else:
-        lat = base_lat + np.random.uniform(-2, 2)
-        lon = base_lon + np.random.uniform(-2, 2)
+    # Relaxed location spread to increase nearby interactions
+    lat = base_lat + np.random.uniform(-0.5, 0.5)  # Wider range for more local interactions
+    lon = base_lon + np.random.uniform(-0.5, 0.5)
     return lat, lon
 
-def generate_users(n_users=20000):
+def generate_users(n_users=50000):
     users = []
     interests = ['music', 'sports', 'tech', 'food', 'art', 'literature', 'cinema', 'travel', 'fitness', 'fashion']
-    
+
     for _ in range(n_users):
         city = np.random.choice(cities, p=city_probs)
         lat, lon = generate_location(city)
         age = max(18, min(100, int(skewnorm.rvs(5, loc=25, scale=15))))
         weather_probs = dirichlet.rvs([0.3, 0.5, 0.2])[0]
-        
+        user_interests = random.sample(interests, k=random.randint(2, 4))  # Ensure 2–4 interests for diversity
+
         users.append({
-            'user_id': fake.uuid4(),
-            'location_lat': lat,
-            'location_lon': lon,
-            'city': city,
-            'event_type_preference': np.random.choice(['indoor', 'outdoor', 'any'], p=weather_probs),
+            'user_id': generic.person.identifier(mask='@@###@'),
+            'user_lat': lat,
+            'user_lon': lon,
+            'user_city': city,
+            'indoor_outdoor_preference': np.random.choice(['indoor', 'outdoor', 'any'], p=weather_probs),
             'age': age,
-            'declared_interests': random.sample(interests, k=random.randint(0, min(4, len(interests)))) if random.random() < 0.7 else [],
-            #'signup_date': fake.date_time_between(start_date='-2y', end_date='now'),
-            #'social_connectedness': np.random.poisson(lam=15)
+            'user_interests': ','.join(user_interests),
+            'signup_date': fake.date_time_between(start_date='-2y', end_date='now'),
+            'social_connectedness': np.random.poisson(lam=15)
         })
-    return users
+    return pd.DataFrame(users)
+
+
 
 

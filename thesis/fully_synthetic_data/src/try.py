@@ -567,10 +567,10 @@ fs = project.get_feature_store()
 
 # Generate data
 print("Generating user data...")
-users_df = generate_users(25000)
+users_df = generate_users(50000)
 
 print("Generating event data...")
-events_df = generate_events(20000)
+events_df = generate_events(10000)
 
 print("Generating interaction data...")
 interactions_df = generate_interactions(users_df, events_df, 300000)
@@ -679,7 +679,7 @@ ranking_df_with_weather.to_csv("ranking_df_with_weather2.csv")
 # create ranking data without weather information
 ranking_df_without_weather = ranking_df.drop(['interaction_id', 'interaction_type',
        'interaction_time', 'start_time','weather_condition',
-       'temperature', 'user_weather_preference',
+       'temperature', 'indoor_outdoor_preference',
        'signup_date', 'social_connectedness'],axis=1)
 
 ranking_fg_without_weather = fs.get_or_create_feature_group(

@@ -1,8 +1,8 @@
 import pandas as pd
 import hopsworks
-from features.users import generate_users
-from features.events import generate_events
-from features.interactions import generate_interactions
+from thesis.fully_synthetic_data.src.users import generate_users
+from thesis.fully_synthetic_data.src.events import generate_events
+from thesis.fully_synthetic_data.src.interactions import generate_interactions
 
 # Login to Hopsworks
 project = hopsworks.login()

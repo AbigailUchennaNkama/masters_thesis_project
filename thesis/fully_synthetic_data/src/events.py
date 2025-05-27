@@ -1,10 +1,12 @@
 import numpy as np
-import random
+import pandas as pd
 from faker import Faker
-from datetime import timedelta
-
-# Initialize Faker and set seed for reproducibility
+from datetime import datetime, timedelta
+from mimesis import Generic
+import random
+# Initialize Faker
 fake = Faker()
+generic = Generic('en')
 np.random.seed(42)
 random.seed(42)
 
@@ -20,43 +22,32 @@ city_coords = {
 
 def generate_location(city):
     base_lat, base_lon = city_coords[city]
-    if random.random() < 0.8:
-        lat = base_lat + np.random.uniform(-0.1, 0.1)
-        lon = base_lon + np.random.uniform(-0.1, 0.1)
-    else:
-        lat = base_lat + np.random.uniform(-2, 2)
-        lon = base_lon + np.random.uniform(-2, 2)
+    # Relaxed location spread to increase nearby interactions
+    lat = base_lat + np.random.uniform(-0.5, 0.5)  # Wider range for more local interactions
+    lon = base_lon + np.random.uniform(-0.5, 0.5)
     return lat, lon
 
-
-def generate_events(n_events=5000):
+def generate_events(n_events=10000):
     events = []
     event_types = [
-        'Education & Learning', 'Technology', 'Seasonal & Festivals', 'Arts & Culture', 
-        'Entertainment', 'Sports & Fitness', 'Business & Networking', 'Health & Wellness', 
+        'Education & Learning', 'Technology', 'Seasonal & Festivals', 'Arts & Culture',
+        'Entertainment', 'Sports & Fitness', 'Business & Networking', 'Health & Wellness',
         'Music & Concerts', 'Food & Drink', 'Community & Causes', 'Immersive Experiences'
     ]
     weather_conditions = ['Clear', 'Rain', 'Snow', 'Cloudy', 'Windy']
     weather_probs = [0.5, 0.2, 0.05, 0.2, 0.05]
-    
+    current_date = datetime(2025, 5, 25, 11, 42)  # Updated to current date
+
     for _ in range(n_events):
         event_type = np.random.choice(event_types)
         city = np.random.choice(cities, p=city_probs)
         lat, lon = generate_location(city)
-        
-        if event_type in ['Sports & Fitness', 'Seasonal & Festivals']:
-            weather_condition = 'Clear' if random.random() < 0.8 else np.random.choice(['Rain', 'Cloudy'])
-        elif event_type in ['Education & Learning', 'Technology', 'Business & Networking']:
-            weather_condition = np.random.choice(['Clear', 'Cloudy'])
-        else:
-            weather_condition = np.random.choice(weather_conditions, p=weather_probs)
-        
+        weather_condition = np.random.choice(weather_conditions, p=weather_probs)
         base_temp = {
-            'New York': 15, 'London': 12, 'Paris': 16, 'Tokyo': 20, 
-            'Sydney': 22, 'Berlin': 14, 'Mumbai': 28, 'São Paulo': 24, 
+            'New York': 15, 'London': 12, 'Paris': 16, 'Tokyo': 20,
+            'Sydney': 22, 'Berlin': 14, 'Mumbai': 28, 'São Paulo': 24,
             'Toronto': 10, 'Dubai': 32
         }[city]
-        
         temp_adjustment = {
             'Clear': np.random.uniform(2, 5),
             'Rain': np.random.uniform(-3, 0),
@@ -64,30 +55,27 @@ def generate_events(n_events=5000):
             'Cloudy': np.random.uniform(-1, 2),
             'Windy': np.random.uniform(-2, 1)
         }[weather_condition]
-        
         temperature = round(base_temp + temp_adjustment, 1)
-        
-        start_time = fake.date_time_between(start_date='now', end_date='+6M')
+        start_time = fake.date_time_between(start_date=current_date, end_date=current_date + timedelta(days=180))
         is_weekend = start_time.weekday() >= 5
         hour_choices = [10, 14, 18] if is_weekend else [9, 13, 18, 19]
         start_time = start_time.replace(hour=np.random.choice(hour_choices))
-        
+
         events.append({
-            'event_id': fake.uuid4(),
+            'event_id': generic.person.identifier(mask='@@###@'),
             'title': f"{fake.catch_phrase()} {event_type} in {city}",
-            'event_type': event_type,
-            'location_lat': lat,
-            'location_lon': lon,
-            'city': city,
+            'category': event_type,
+            'event_lat': lat,
+            'event_lon': lon,
+            'event_city': city,
             'start_time': start_time,
             'duration': np.random.choice([120, 180, 240, 360, 480]),
             'weather_condition': weather_condition,
             'temperature': temperature,
-            'historical_attendance_rate': np.random.beta(a=2, b=5) * 100,
-            'indoor_capability': event_type in ['Education & Learning', 'Technology', 'Business & Networking', 
+            'attendance_rate': np.random.beta(a=2, b=5) * 100,
+            'event_indoor_capability': event_type in ['Education & Learning', 'Technology', 'Business & Networking',
                                                'Arts & Culture', 'Entertainment', 'Immersive Experiences']
         })
-    return events
-
+    return pd.DataFrame(events)
 
 
