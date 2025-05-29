@@ -8,5 +8,5 @@ requirements = [x.strip() for x in content]
 
 setup(name='thesis',
       description="package description",
-      packages=find_packages(), # find packages automatically
+      packages=find_packages(), # to find packages automatically
       install_requires=requirements)
