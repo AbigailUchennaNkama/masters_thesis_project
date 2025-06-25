@@ -21,10 +21,10 @@ def calculate_time_weight(interaction_time, current_time, half_life=30):
     time_diff = (current_time - interaction_time).days
     return np.exp(np.log(0.5) * time_diff / half_life)
 
-def match_interests(user_interests, event_type):
+def match_interests(user_interests, category):
     """Calculate interest match score based on user interests and event type."""
     interest_list = user_interests.split(',')
-    event_type_lower = event_type.lower()
+    event_type_lower = category.lower()
     interest_mapping = {
         'music': ['music & concerts'],
         'sports': ['sports & fitness'],
@@ -87,7 +87,7 @@ def generate_interactions(users, events, n_interactions=500000):
                               (event['event_indoor_capability'] and
                                event['weather_condition'] in ['Rain', 'Snow']) else 0.8
         social_score = np.log1p(user['social_connectedness']) / 5  # Increased weight
-        interest_score = match_interests(user['user_interests'], event['event_type'])  # New interest matching
+        interest_score = match_interests(user['user_interests'], event['category'])  # New interest matching
 
         interaction_prob = 0.5 * distance_score + 0.2 * weather_score + 0.1 * social_score + 0.2 * interest_score
 
