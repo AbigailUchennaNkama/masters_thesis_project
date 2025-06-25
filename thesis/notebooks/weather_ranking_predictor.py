@@ -1,26 +1,42 @@
 
+# weather_ranking_predictor.py
 import os
 import joblib
-import numpy as np
-import logging
+import pandas as pd
+from catboost import Pool
 
-class Predict(object):
+class Predict:
+
     def __init__(self):
-        # Load the model from the environment variable
-        model_path = os.environ["MODEL_FILES_PATH"]
-        self.model = joblib.load(os.path.join(model_path, "weather_ranking_model.pkl"))
-        logging.info("Model loaded successfully")
+        model_dir = os.environ["MODEL_FILES_PATH"]
+        self.model = joblib.load(os.path.join(model_dir, "weather_ranking_model.pkl"))
+        self.feature_names = self.model.feature_names_
 
     def predict(self, inputs):
-        # The inputs will be a dict with a list of lists under "instances"
-        # Example: {"instances": [[feature1, feature2, ...], ...]}
-        features = inputs["instances"]
-        logging.info(f"Predict received {len(features)} instances")
-        logging.info(f"Feature shape (if available): {np.array(features).shape if features else 'empty'}")
+        # --- Fix is here: unpack from inputs["inputs"][0], not inputs[0] ---
+        batch     = inputs["inputs"][0]
+        features  = batch["ranking_features"]
+        event_ids = batch["event_ids"]
 
-        # Predict probabilities for the positive class
-        # (Assuming your model is a binary classifier with predict_proba)
-        scores = self.model.predict_proba(features)[:, 1].tolist()
+        # Construct DataFrame with correct columns
+        df = pd.DataFrame(features, columns=self.feature_names)
 
-        # Return the scores (event_ids are not passed here, handle in postprocessing if needed)
-        return {"predictions": scores}
+        # Cast categorical columns to string
+        cat_cols = df.select_dtypes(include=["object", "bool"]).columns.tolist()
+        for c in cat_cols:
+            df[c] = df[c].astype(str)
+
+        # Create Pool & score
+        pool  = Pool(data=df, cat_features=cat_cols)
+        probs = self.model.predict_proba(pool)
+        pos_idx = list(self.model.classes_).index(1)
+        scores  = probs[:, pos_idx].tolist()
+
+        # Return final outputs
+        return {
+            "scores":    scores,
+            "event_ids": event_ids
+        }
+
+
+
