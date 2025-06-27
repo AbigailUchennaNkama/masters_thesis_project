@@ -1,9 +1,28 @@
 # requirements.txt
-hopsworks==4.2.2
+
+# Core Libraries
+pandas==2.2.1
+numpy==1.26.4
 mimesis==15.1.0
+scikit-learn==1.3.2
+
+# Retrieval
 tensorflow==2.15.0
 tensorflow-recommenders==0.7.2
+faiss-cpu==1.7.4
+
+# Ranking
 catboost==1.2.1
-scikit-learn==1.3.2
+
+# Feature Store & Deployment
+hopsworks==4.2.2
+joblib==1.4.0
+
+# Streamlit App
 streamlit==1.43.2
+geopy==2.4.1
+requests==2.31.0
+
+# Optional (notebooks and plotting)
+matplotlib==3.8.4
 
